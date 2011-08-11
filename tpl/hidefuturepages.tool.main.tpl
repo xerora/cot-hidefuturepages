@@ -1,14 +1,15 @@
 <!-- BEGIN: MAIN -->
 	<link href="{HFP_TOOL_STYLESHEET_HREF}" rel="stylesheet" type="text/css" />
 	<div id="hfp_tool_content">
-		<h3>Pages currently set for the future</h3>
 
 		<!-- BEGIN: ACTION_SHOWALL -->
+			<h3>{TOOL_SHOW_TITLE}</h3>
 
+			Show: {TOOL_SHOW_OPTIONS}
 			<hr />
 			<!-- BEGIN: EMPTY_LIST -->
 				<p style="margin-top: 20px;">
-					There are currently no pages set to display in the future.
+					There are currently no pages to show.
 				</p>
 			<!-- END: EMPTY_LIST -->
 			

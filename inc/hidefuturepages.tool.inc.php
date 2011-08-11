@@ -17,17 +17,20 @@ function hfp_tool_action_showall() {
 	$sortby = strtoupper(sed_import('sortby', 'G', 'ALP'));
 	$sortby_options = array('DESC', 'ASC');
 	$orderby_options = array('id', 'begin', 'expire', 'title');	
+	$showstate_options = array(3, 4);
 	$sortby = (empty($sortby) || !in_array($sortby, $sortby_options)) ? "DESC" : $sortby;
 	$orderby = (empty($orderby) || !in_array($orderby, $orderby_options)) ? "id" : $orderby;
 	$orderby = "page_".$orderby;
 	$realpage = $page+1;
+	$showstate = sed_import('state', 'G', 'INT');
+	$showstate = (empty($showstate) || !in_array($showstate, $showstate_options)) ? 3 : $showstate;
 	
 	$limit = HFP_TOOL_ITEMS_PER_PAGE;
 	$offset = ceil($page*$limit);
-	$sql_total = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='3'");
+	$sql_total = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='$showstate'");
 	$total_count = (int)sed_sql_result($sql_total, 0, "COUNT(*)");
 	$sql = sed_sql_query("SELECT page_state, page_title, page_begin, page_expire, page_id FROM $db_pages ".
-	"WHERE page_state='3' ORDER BY ".sed_sql_prep($orderby)." ".sed_sql_prep($sortby)." LIMIT ".(int)$offset.", ".(int)$limit);
+	"WHERE page_state='$showstate' ORDER BY ".sed_sql_prep($orderby)." ".sed_sql_prep($sortby)." LIMIT ".(int)$offset.", ".(int)$limit);
 	
 	while($result = sed_sql_fetchassoc($sql)) {
 		$t->assign(array(
@@ -51,7 +54,17 @@ function hfp_tool_action_showall() {
 		$itemcount++;
 		$t->parse("MAIN.ACTION_SHOWALL.NONEMPTY_LIST.ITEM_LIST");
 	}
+	switch($showstate) {
+		case 3:
+			$tooltitle = "Pages currently set for the future";
+		break;
+		case 4:
+			$tooltitle = "Pages currently expired";
+		break;
+	}
 	$t->assign(array(
+		"TOOL_SHOW_TITLE" => $tooltitle,
+		"TOOL_SHOW_OPTIONS" => hfp_tool_show_options(),
 		"TOOL_SHOW_COUNT" => $total_count,
 		"TOOL_SHOW_PAGELIMIT" => $itemcount,
 	));
@@ -62,6 +75,18 @@ function hfp_tool_action_showall() {
 		$t->parse("MAIN.ACTION_SHOWALL.NONEMPTY_LIST");
 	}
 	$t->parse("MAIN.ACTION_SHOWALL");
+}
+
+function hfp_tool_show_options() {
+	global $db_pages;
+	$sql_count_state3 = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='3'");
+	$state3_count = sed_sql_result($sql_count_state3, 0, "COUNT(*)");
+	
+	$output  = "<span id=\"hfp_options_nojs\">";
+	$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=3')."\">Future pages (".(int)$state3_count.")</a> &nbsp;-&nbsp;";
+	$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=4')."\">Hidden pages (".(int)$state4_count.")</a>"; 
+	$output .= "</span>"; 
+	return $output; 
 }
 
 function hfp_tool_action_add_to_queue($id) {
