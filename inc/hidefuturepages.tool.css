@@ -1,0 +1,29 @@
+.hfp_list_container {
+	list-style: none;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+	clear: both;	
+}
+li.hfp_list_item {
+	list_style: none;
+	float: left;
+	margin: 0px;
+	padding: 0px;	
+}
+#hfp_tool_content {
+	margin-bottom: 25px;
+}
+.hfp_item_list {
+	width: 100%; 
+	padding-top: 6px; 
+	padding-bottom: 6px;	
+}
+.hfp_icon_12 {
+	height: 12px;
+	width: 12px;	
+}
+.hfp_icon_16 {
+	height: 16px;
+	width: 16px;	
+}
