@@ -2,7 +2,7 @@
 What this plugin does:
 -----------------------------------
 
-1. Hides pages that are set to display in the future from lists and feeds. Normally, pages set for a future date.
+1. Hides pages that are set to display in the future from lists and feeds. Normally, pages set for a future date
 are still displayed in lists and feeds and will just display how long until the page will display.
 2. (optional, see below) Allows pages to expire on the date set
 3. Ability to ajust the default number of years until a page expires. 
@@ -15,6 +15,7 @@ Installation
 Standard plugin installation:
 
 Backup your database as a precaution.
+
 1. Download, unpack and upload the hidefuturepages plugin folder to your plugin directory.
 2. Install plugin in administration panel.
 3. Check the plugin's configurations in the plugin administration to make sure everything is set to your
