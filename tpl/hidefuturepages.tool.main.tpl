@@ -1,12 +1,22 @@
 <!-- BEGIN: MAIN -->
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$("#hfp_options_nojs").remove();
+		$("#hfp_options_js").show();
+		$("#hfp_options_js").change(function() {
+
+		});
+	});
+	</script>
 	<link href="{HFP_TOOL_STYLESHEET_HREF}" rel="stylesheet" type="text/css" />
 	<div id="hfp_tool_content">
 
 		<!-- BEGIN: ACTION_SHOWALL -->
 			<h3>{TOOL_SHOW_TITLE}</h3>
+			<div style="margin-top: 10px; margin-bottom: 10px;">
+				Switch to show:&nbsp; {TOOL_SHOW_OPTIONS}
+			</div>
 
-			Show: {TOOL_SHOW_OPTIONS}
-			<hr />
 			<!-- BEGIN: EMPTY_LIST -->
 				<p style="margin-top: 20px;">
 					There are currently no pages to show.
@@ -54,8 +64,8 @@
 					Showing {TOOL_SHOW_PAGELIMIT} of {TOOL_SHOW_COUNT} items.
 				</li>
 			</ul>
-			<hr />
-			<div>
+			<hr class="hfp_hr" />
+			<div style="margin-top: 10px;">
 				<strong>Legend:</strong>
 				<ul class="hfp_list_container" style="margin-top: 15px;">
 					<li class="hfp_list_item" style="margin-right: 30px;">

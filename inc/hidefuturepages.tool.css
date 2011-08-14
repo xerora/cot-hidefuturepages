@@ -30,3 +30,10 @@ li.hfp_list_item {
 .hfp_title {
 	font-size: 14px;
 }
+
+.hfp_hr {
+	height: 1px;
+	width: 100%;
+	margin: 0px;
+	padding: 0px;
+}

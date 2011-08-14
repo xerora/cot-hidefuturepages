@@ -10,10 +10,10 @@ function hfp_tool_action_showall() {
 	
 	$d = 0;
 	$itemcount = 0;
-	$page = sed_import('page', 'G', 'INT');
+	$page = sed_import('page', 'G', 'INT', 2);
 	$page = (int)$page;
 	$page = ($page!=0) ? $page-1 : 0;
-	$orderby = sed_import('orderby', 'G', 'ALP');
+	$orderby = sed_import('orderby', 'G', 'ALP', 4);
 	$sortby = strtoupper(sed_import('sortby', 'G', 'ALP'));
 	$sortby_options = array('DESC', 'ASC');
 	$orderby_options = array('id', 'begin', 'expire', 'title');	
@@ -22,7 +22,7 @@ function hfp_tool_action_showall() {
 	$orderby = (empty($orderby) || !in_array($orderby, $orderby_options)) ? "id" : $orderby;
 	$orderby = "page_".$orderby;
 	$realpage = $page+1;
-	$showstate = sed_import('state', 'G', 'INT');
+	$showstate = sed_import('state', 'G', 'INT', 1);
 	$showstate = (empty($showstate) || !in_array($showstate, $showstate_options)) ? 3 : $showstate;
 	
 	$limit = HFP_TOOL_ITEMS_PER_PAGE;
@@ -56,15 +56,15 @@ function hfp_tool_action_showall() {
 	}
 	switch($showstate) {
 		case 3:
-			$tooltitle = "Pages currently set for the future";
+			$tooltitle = "Future pages";
 		break;
 		case 4:
-			$tooltitle = "Pages currently expired";
+			$tooltitle = "Hidden pages";
 		break;
 	}
 	$t->assign(array(
 		"TOOL_SHOW_TITLE" => $tooltitle,
-		"TOOL_SHOW_OPTIONS" => hfp_tool_show_options(),
+		"TOOL_SHOW_OPTIONS" => hfp_tool_show_options($showstate),
 		"TOOL_SHOW_COUNT" => $total_count,
 		"TOOL_SHOW_PAGELIMIT" => $itemcount,
 	));
@@ -77,15 +77,41 @@ function hfp_tool_action_showall() {
 	$t->parse("MAIN.ACTION_SHOWALL");
 }
 
-function hfp_tool_show_options() {
+function hfp_tool_get_page_count($page_state) {
 	global $db_pages;
-	$sql_count_state3 = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='3'");
-	$state3_count = sed_sql_result($sql_count_state3, 0, "COUNT(*)");
+	$sql = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='".(int)$page_state."'");
+	$result = sed_sql_result($sql, 0, "COUNT(*)");
+	return (int)$result;
+}
+
+function hfp_tool_show_options($currentstate=3) {
+	$count_futurepages = hfp_tool_get_page_count(3);
+	$count_hiddenpages = hfp_tool_get_page_count(4);
 	
 	$output  = "<span id=\"hfp_options_nojs\">";
-	$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=3')."\">Future pages (".(int)$state3_count.")</a> &nbsp;-&nbsp;";
-	$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=4')."\">Hidden pages (".(int)$state4_count.")</a>"; 
+	if($currentstate!=3) {
+		$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=3')."\">Future pages (".(int)$count_futurepages.")</a> &nbsp;-&nbsp;";
+	}
+	else {
+		$output .= "<strong>Future pages (".(int)$count_futurepages.")</strong> &nbsp;-&nbsp;";
+	}	
+	if($currentstate!=4) {
+		$output .= "<a href=\"".sed_url('admin', 'm=tools&p=hidefuturepages&state=4')."\">Hidden pages (".(int)$count_hiddenpages.")</a>"; 
+	}
+	else {
+		$output .= "<strong>Hidden pages (".(int)$count_hiddenpages.")</strong>"; 
+	}
 	$output .= "</span>"; 
+	
+	$futurepagesselected = ($currentstate==3) ? ' selected="selected"' : '';
+	$hiddenpagesselected = ($currentstate==4) ? ' selected="selected"' : '';
+	
+	$output .= "<span style=\"display: none;\" id=\"hfp_options_js\">";
+	$output .= "<select>";
+	$output .= "<option".$futurepagesselected." value=\"3\">Future pages</option>";
+	$output .= "<option".$hiddenpagesselected." value=\"4\">Hidden pages</option>";
+	$output .= "</select>";
+	$output .= "</span>";
 	return $output; 
 }
 
@@ -118,14 +144,15 @@ function hfp_tool_action_set_to_display($id) {
 }
 
 function hfp_create_pagination($total, $page) {
-	global $cfg;
+	global $cfg, $showstate;
 	$limit = HFP_TOOL_ITEMS_PER_PAGE;
 	$offset_page = $page-1;
 	$total = ($total!=0) ? ceil($total/$limit) : 0;
+	$state = $showstate;
 	
 	if($offset_page!=0) {
 		$prev_page = $page-1;
-		$output = '<a style="text-decoration: underline;" href="'.sed_url('admin', 'm=tools&p=hidefuturepages&page='.$prev_page).'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-left.png" /></a> &nbsp; ';
+		$output = '<a style="text-decoration: underline;" href="'.sed_url('admin', 'm=tools&p=hidefuturepages&page='.$prev_page.'&state='.$state).'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-left.png" /></a> &nbsp; ';
 	}
 	for($i=0; $total>$i; $i++) {
 		$page_out = $i+1;
