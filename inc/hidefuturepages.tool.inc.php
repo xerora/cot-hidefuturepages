@@ -1,6 +1,5 @@
 <?php
 defined('SED_CODE') or die('Wrong URL');
-error_reporting(E_ALL ^E_NOTICE);
 $itemsperpageconfig = (int)$cfg['plugin']['hidefuturepages']['maxitemsperpage']; 
 $itemsperpage = ($itemsperpageconfig>0) ? $itemsperpageconfig : 10;
 define('HFP_TOOL_ITEMS_PER_PAGE', $itemsperpage);
@@ -50,7 +49,7 @@ function hfp_tool_action_showall() {
 			"ITEM_SORT_EXPIRE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=desc&state='.$state.'&page='.$realpage),
 			"ITEM_PAGE_ADD_TO_QUEUE_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=add_to_queue&id='.(int)$result['page_id'])."&".sed_xg(),
 			"ITEM_PAGE_SET_TO_DISPLAY_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=set_to_display&id='.(int)$result['page_id'])."&".sed_xg(),
-			"ITEM_PAGE_PAGINATION" => hfp_create_pagination($total_count, $page+1), 
+			"ITEM_PAGE_PAGINATION" => hfp_create_pagination($total_count, $page+1, $state), 
 		));
 		$itemcount++;
 		$t->parse("MAIN.ACTION_SHOWALL.NONEMPTY_LIST.ITEM_LIST");
@@ -159,26 +158,27 @@ function hfp_tool_action_set_to_display($id) {
 	sed_redirect(sed_url('admin', 'm=tools&p=hidefuturepages&state='.$state, NULL, TRUE));
 }
 
-function hfp_create_pagination($total, $page) {
-	global $cfg, $showstate;
+function hfp_create_pagination($total, $page, $state) {
+	global $cfg;
 	$limit = HFP_TOOL_ITEMS_PER_PAGE;
 	$offset_page = $page-1;
 	$total = ($total!=0) ? ceil($total/$limit) : 0;
-	$state = $showstate;
 	
 	if($offset_page!=0) {
-		$prev_page = $page-1;
-		$output = '<a style="text-decoration: underline;" href="'.sed_url('admin', 'm=tools&p=hidefuturepages&page='.$prev_page.'&state='.$state).'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-left.png" /></a> &nbsp; ';
+		$previous_page = $page-1;
+		$previous_url = sed_url('admin', array('m' => 'tools', 'p' => 'hidefuturepages', 'state' => $state, 'page' => $previous_page));
+		$output = '<a style="text-decoration: underline;" href="'.$previous_url.'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-left.png" /></a> &nbsp; ';
 	}
 	for($i=0; $total>$i; $i++) {
-		$page_out = $i+1;
-		if($page_out!=$page) {
-			$output .= '<a style="text-decoration: underline;" href="'.sed_url('admin', 'm=tools&p=hidefuturepages&page='.$page_out).'">'.$page_out.'</a> ';
+		$pageout = $i+1;
+		if($pageout!=$page) {
+			$pagelist_url = sed_url('admin', array('m' => 'tools', 'p' => 'hidefuturepages', 'state' => $state, 'page' => $pageout));
+			$output .= '<a style="text-decoration: underline;" href="'.$pagelist_url.'">'.$pageout.'</a> ';
 		}
 		else {
-			$output .= '<b>'.$page_out.'</b> ';
+			$output .= '<b>'.$pageout.'</b> ';
 		}
-		if($page_out!=$total) {
+		if($pageout!=$total) {
 			$output .= '&nbsp;';
 		}
 	}
@@ -186,7 +186,8 @@ function hfp_create_pagination($total, $page) {
 
 	if((int)$page!=(int)$total) {
 		$next_page = $page+1;
-		$output .= ' &nbsp; <a style="text-decoration: underline;" href="'.sed_url('admin', 'm=tools&p=hidefuturepages&page='.$next_page).'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-right.png" /></a> ';
+		$next_url = sed_url('admin', array('m' => 'tools', 'p' => 'hidefuturepages', 'state' => $state, 'page' => $next_page));
+		$output .= ' &nbsp; <a style="text-decoration: underline;" href="'.$next_url.'"><img class="hfp_icon_16" src="'.$cfg['plugins_dir'].'/hidefuturepages/img/arrow-right.png" /></a> ';
 	}
 	return $output;
 }

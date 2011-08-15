@@ -32,7 +32,7 @@ if(isset($cfg['allowpageexpire']) && $cfg['allowpageexpire']) {
 					$expirepages_result['page_comcount'] = 0;
 					sed_trash_put('page', $expirepages_result['page_title'], $expirepages_result['page_id'], $expirepages_result);
 				}
-				$pagedeletedstatus = sed_sql_query("DELETE FROM $db_pages WHERE page_id='".(int)$expirepages_result['page_id']."'");
+				$sql_pagestatus = sed_sql_query("DELETE FROM $db_pages WHERE page_id='".(int)$expirepages_result['page_id']."'");
 				sed_log("Deleted page #".(int)$expirepages_result['page_id'],'adm');
 				sed_sql_query("UPDATE $db_structure SET structure_pagecount=structure_pagecount-1 WHERE structure_code='".sed_sql_prep($expirepages_result['page_cat'])."'");
 	
@@ -44,17 +44,20 @@ if(isset($cfg['allowpageexpire']) && $cfg['allowpageexpire']) {
 				}					
 			break;
 			case 'hide':
-				sed_sql_query("UPDATE $db_pages SET page_state='4' WHERE page_id='$pageid'");
+				$sql_pagestatus = sed_sql_query("UPDATE $db_pages SET page_state='4' WHERE page_id='$pageid'");
 			break;
 		}		
-		if($pagedeletedstatus) {
+		if($sql_pagestatus) {
 			$expirepages_count++;
 		}
 	}
-	if($expirepages_count>0 && $cfg['trash_page']) {
+	if($expirepages_count>0 && $cfg['trash_page'] && $pageexpireaction=='delete') {
 		sed_log($expirepages_count." page(s) had expired and were put in the trash", 'adm');
 	}
-	elseif($expirepages_count>0) {
+	elseif($expirepages_count>0 && $pageexpireaction=='delete') {
 		sed_log($expirepages_count." page(s) had expired and were deleted", 'adm');
+	}
+	elseif($expirepages_count>0 && $pageexpireaction=='update') {
+		sed_log($expirepages_count." page(s) had expired and set to be hidden.", 'adm');
 	}
 }
