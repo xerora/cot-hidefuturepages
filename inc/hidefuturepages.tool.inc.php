@@ -1,6 +1,6 @@
 <?php
 defined('SED_CODE') or die('Wrong URL');
-
+error_reporting(E_ALL ^E_NOTICE);
 $itemsperpageconfig = (int)$cfg['plugin']['hidefuturepages']['maxitemsperpage']; 
 $itemsperpage = ($itemsperpageconfig>0) ? $itemsperpageconfig : 10;
 define('HFP_TOOL_ITEMS_PER_PAGE', $itemsperpage);
@@ -40,14 +40,14 @@ function hfp_tool_action_showall() {
 			"ITEM_PAGE_BEGIN" => @date($cfg['dateformat'], (int)$result['page_begin'] + $usr['timezone'] * 3600),
 			"ITEM_PAGE_EXPIRE" => @date($cfg['dateformat'], (int)$result['page_expire'] + $usr['timezone'] * 3600),
 			"ITEM_PAGE_EDIT_URL" => sed_url('page', "m=edit&id=".(int)$result['page_id']."&r=adm"),
-			"ITEM_SORT_TITLE_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=title&sortby=asc&page='.$realpage),
-			"ITEM_SORT_TITLE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=title&sortby=desc&page='.$realpage),
-			"ITEM_SORT_ID_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=id&sortby=asc&page='.$realpage),
-			"ITEM_SORT_ID_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=id&sortby=desc&page='.$realpage),
-			"ITEM_SORT_BEGIN_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=begin&sortby=asc&page='.$realpage),
-			"ITEM_SORT_BEGIN_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=begin&sortby=desc&page='.$realpage),
-			"ITEM_SORT_EXPIRE_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=asc&page='.$realpage),
-			"ITEM_SORT_EXPIRE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=desc&page='.$realpage),
+			"ITEM_SORT_TITLE_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=title&sortby=asc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_TITLE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=title&sortby=desc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_ID_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=id&sortby=asc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_ID_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=id&sortby=desc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_BEGIN_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=begin&sortby=asc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_BEGIN_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=begin&sortby=desc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_EXPIRE_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=asc&state='.$state.'&page='.$realpage),
+			"ITEM_SORT_EXPIRE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=desc&state='.$state.'&page='.$realpage),
 			"ITEM_PAGE_ADD_TO_QUEUE_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=add_to_queue&id='.(int)$result['page_id'])."&".sed_xg(),
 			"ITEM_PAGE_SET_TO_DISPLAY_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=set_to_display&id='.(int)$result['page_id'])."&".sed_xg(),
 			"ITEM_PAGE_PAGINATION" => hfp_create_pagination($total_count, $page+1), 
@@ -122,28 +122,41 @@ function hfp_tool_action_add_to_queue($id) {
 	global $db_pages, $sys, $db_structure;
 	sed_check_xg();
 	$id = (int)$id;
+	$state = sed_import('state', 'G', 'INT', 1);
 	if($id>0) {
 		$sql = sed_sql_query("SELECT page_cat FROM $db_pages WHERE page_id='".$id."'");
 		if($result = sed_sql_fetchassoc($sql)) {
-			sed_sql_query("UPDATE $db_pages SET page_state='1' WHERE page_id='".$id."'");
+			$pageexpire = hfp_tool_get_yearstillexpire();
+			sed_sql_query("UPDATE $db_pages SET page_state='1', page_expire='".$pageexpire."' WHERE page_id='".$id."'");
 			sed_sql_query("UPDATE $db_structure SET structure_pagecount=structure_pagecount-1 WHERE structure_code='".sed_sql_prep($result['page_cat'])."'");
 		}
 	}
-	sed_redirect(sed_url('admin', 'm=tools&p=hidefuturepages', NULL, TRUE));
+	sed_redirect(sed_url('admin', 'm=tools&p=hidefuturepages&state='.$state, NULL, TRUE));
+}
+
+function hfp_tool_get_yearstillexpire() {
+	global $cfg, $sys;
+	$yearstillexpire = (int)$cfg['plugin']['hidefuturepages']['yearstillpageexpire'];
+	$yearstillexpire = ($yearstillexpire==0) ? 1: $yearstillexpire; 
+	$pageexpire = (31536000*$yearstillexpire);
+	$pageexpire = $sys['now_offset']+$pageexpire;
+	return $pageexpire;	
 }
 
 function hfp_tool_action_set_to_display($id) {
-	global $db_pages, $sys, $db_structure;
+	global $db_pages, $cfg, $sys, $usr, $db_structure;
 	sed_check_xg();
 	$id = (int)$id;
+	$state = sed_import('state', 'G', 'INT', 1);
 	if($id>0) {
 		$sql = sed_sql_query("SELECT page_cat FROM $db_pages WHERE page_id='".$id."'");
 		if($result = sed_sql_fetchassoc($sql)) {
-			sed_sql_query("UPDATE $db_pages SET page_begin='".(int)$sys['now_offset']."', page_state='0' WHERE page_id='$id'");
+			$pageexire = hfp_tool_get_yearstillexpire();
+			sed_sql_query("UPDATE $db_pages SET page_begin='".(int)$sys['now_offset']."', page_expire='".$pageexpire."', page_state='0' WHERE page_id='$id'");
 			sed_sql_query("UPDATE $db_structure SET structure_pagecount=structure_pagecount+1 WHERE structure_code='".sed_sql_prep($result['page_cat'])."'");
 		}
 	}
-	sed_redirect(sed_url('admin', 'm=tools&p=hidefuturepages', NULL, TRUE));
+	sed_redirect(sed_url('admin', 'm=tools&p=hidefuturepages&state='.$state, NULL, TRUE));
 }
 
 function hfp_create_pagination($total, $page) {

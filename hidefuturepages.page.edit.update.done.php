@@ -11,7 +11,7 @@ Order=10
 ==================== */
 defined('SED_CODE') or die('Wrong URL');
 
-if((int)$page_state==0 && (int)$currentpagestate==1 && (int)$rpagebegin>(int)$sys['now_offset']) {
+if((int)$rpagebegin>(int)$sys['now_offset']) {
 	$id = (int)$id;
 	sed_sql_query("UPDATE $db_pages SET page_state='3' WHERE page_id='$id'");
 	sed_log("Edited page #".$id,'adm');
