@@ -32,6 +32,7 @@ switch($action) {
 	break;
 }
 $t->assign(array(
+	"HFP_TOOL_PATH" => $tool_path,
 	"HFP_TOOL_STYLESHEET_HREF" => $cfg['plugins_dir']."/hidefuturepages/inc/hidefuturepages.tool.css",
 ));
 

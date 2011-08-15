@@ -3,8 +3,16 @@
 	$(document).ready(function() {
 		$("#hfp_options_nojs").remove();
 		$("#hfp_options_js").show();
-		$("#hfp_options_js").change(function() {
-
+		$("#hfp_select_options").change(function() {
+			var state_selected = $("#hfp_select_options").val();
+			switch(state_selected) {
+				case '3':
+					window.location = "{TOOL_STATE_SELECTED_URL_FUTURE}";
+				break;
+				case '4':
+					window.location = "{TOOL_STATE_SELECTED_URL_HIDDEN}";
+				break;
+			}
 		});
 	});
 	</script>
@@ -14,7 +22,7 @@
 		<!-- BEGIN: ACTION_SHOWALL -->
 			<h3>{TOOL_SHOW_TITLE}</h3>
 			<div style="margin-top: 10px; margin-bottom: 10px;">
-				Switch to show:&nbsp; {TOOL_SHOW_OPTIONS}
+				Show pages marked as:&nbsp; {TOOL_SHOW_OPTIONS}
 			</div>
 
 			<!-- BEGIN: EMPTY_LIST -->

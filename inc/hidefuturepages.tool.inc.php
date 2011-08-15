@@ -7,30 +7,31 @@ define('HFP_TOOL_ITEMS_PER_PAGE', $itemsperpage);
 
 function hfp_tool_action_showall() {
 	global $t, $db_pages, $cfg, $usr;
-	
+
+	$page = sed_import('page', 'G', 'INT', 2);
+	$sortby = strtoupper(sed_import('sortby', 'G', 'ALP', 4));
+	$orderby = sed_import('orderby', 'G', 'ALP', 4);	
+	$state = sed_import('state', 'G', 'INT', 1);
+
 	$d = 0;
 	$itemcount = 0;
-	$page = sed_import('page', 'G', 'INT', 2);
 	$page = (int)$page;
 	$page = ($page!=0) ? $page-1 : 0;
-	$orderby = sed_import('orderby', 'G', 'ALP', 4);
-	$sortby = strtoupper(sed_import('sortby', 'G', 'ALP'));
+	$state_options = array(3, 4);
 	$sortby_options = array('DESC', 'ASC');
 	$orderby_options = array('id', 'begin', 'expire', 'title');	
-	$showstate_options = array(3, 4);
 	$sortby = (empty($sortby) || !in_array($sortby, $sortby_options)) ? "DESC" : $sortby;
 	$orderby = (empty($orderby) || !in_array($orderby, $orderby_options)) ? "id" : $orderby;
 	$orderby = "page_".$orderby;
 	$realpage = $page+1;
-	$showstate = sed_import('state', 'G', 'INT', 1);
-	$showstate = (empty($showstate) || !in_array($showstate, $showstate_options)) ? 3 : $showstate;
+	$state = (empty($state) || !in_array($state, $state_options)) ? 3 : $state;
 	
 	$limit = HFP_TOOL_ITEMS_PER_PAGE;
 	$offset = ceil($page*$limit);
-	$sql_total = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='$showstate'");
+	$sql_total = sed_sql_query("SELECT COUNT(*) FROM $db_pages WHERE page_state='$state'");
 	$total_count = (int)sed_sql_result($sql_total, 0, "COUNT(*)");
 	$sql = sed_sql_query("SELECT page_state, page_title, page_begin, page_expire, page_id FROM $db_pages ".
-	"WHERE page_state='$showstate' ORDER BY ".sed_sql_prep($orderby)." ".sed_sql_prep($sortby)." LIMIT ".(int)$offset.", ".(int)$limit);
+	"WHERE page_state='$state' ORDER BY ".sed_sql_prep($orderby)." ".sed_sql_prep($sortby)." LIMIT ".(int)$offset.", ".(int)$limit);
 	
 	while($result = sed_sql_fetchassoc($sql)) {
 		$t->assign(array(
@@ -54,7 +55,7 @@ function hfp_tool_action_showall() {
 		$itemcount++;
 		$t->parse("MAIN.ACTION_SHOWALL.NONEMPTY_LIST.ITEM_LIST");
 	}
-	switch($showstate) {
+	switch($state) {
 		case 3:
 			$tooltitle = "Future pages";
 		break;
@@ -64,9 +65,11 @@ function hfp_tool_action_showall() {
 	}
 	$t->assign(array(
 		"TOOL_SHOW_TITLE" => $tooltitle,
-		"TOOL_SHOW_OPTIONS" => hfp_tool_show_options($showstate),
+		"TOOL_SHOW_OPTIONS" => hfp_tool_show_options($state),
 		"TOOL_SHOW_COUNT" => $total_count,
 		"TOOL_SHOW_PAGELIMIT" => $itemcount,
+		"TOOL_STATE_SELECTED_URL_FUTURE" => sed_url('admin', 'm=tools&p=hidefuturepages&state=3', NULL, TRUE),
+		"TOOL_STATE_SELECTED_URL_HIDDEN" => sed_url('admin', 'm=tools&p=hidefuturepages&state=4', NULL, TRUE),
 	));
 	if($total_count==0) {
 		$t->parse("MAIN.ACTION_SHOWALL.EMPTY_LIST");
@@ -107,9 +110,9 @@ function hfp_tool_show_options($currentstate=3) {
 	$hiddenpagesselected = ($currentstate==4) ? ' selected="selected"' : '';
 	
 	$output .= "<span style=\"display: none;\" id=\"hfp_options_js\">";
-	$output .= "<select>";
-	$output .= "<option".$futurepagesselected." value=\"3\">Future pages</option>";
-	$output .= "<option".$hiddenpagesselected." value=\"4\">Hidden pages</option>";
+	$output .= "<select id=\"hfp_select_options\">";
+	$output .= "<option".$futurepagesselected." value=\"3\">Future pages (".(int)$count_futurepages.")</option>";
+	$output .= "<option".$hiddenpagesselected." value=\"4\">Hidden pages (".(int)$count_hiddenpages.")</option>";
 	$output .= "</select>";
 	$output .= "</span>";
 	return $output; 
