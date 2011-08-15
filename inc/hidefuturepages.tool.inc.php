@@ -47,9 +47,9 @@ function hfp_tool_action_showall() {
 			"ITEM_SORT_BEGIN_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=begin&sortby=desc&state='.$state.'&page='.$realpage),
 			"ITEM_SORT_EXPIRE_ASC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=asc&state='.$state.'&page='.$realpage),
 			"ITEM_SORT_EXPIRE_DESC" => sed_url('admin', 'm=tools&p=hidefuturepages&orderby=expire&sortby=desc&state='.$state.'&page='.$realpage),
-			"ITEM_PAGE_ADD_TO_QUEUE_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=add_to_queue&id='.(int)$result['page_id'])."&".sed_xg(),
-			"ITEM_PAGE_SET_TO_DISPLAY_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=set_to_display&id='.(int)$result['page_id'])."&".sed_xg(),
-			"ITEM_PAGE_PAGINATION" => hfp_create_pagination($total_count, $page+1, $state), 
+			"ITEM_PAGE_ADD_TO_QUEUE_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=add_to_queue&state='.$state.'&id='.(int)$result['page_id'])."&".sed_xg(),
+			"ITEM_PAGE_SET_TO_DISPLAY_URL" => sed_url('admin', 'm=tools&p=hidefuturepages&action=set_to_display&state='.$state.'&id='.(int)$result['page_id'])."&".sed_xg(),
+			"ITEM_PAGE_PAGINATION" => hfp_create_pagination($total_count, $realpage, $state), 
 		));
 		$itemcount++;
 		$t->parse("MAIN.ACTION_SHOWALL.NONEMPTY_LIST.ITEM_LIST");
@@ -136,10 +136,8 @@ function hfp_tool_action_add_to_queue($id) {
 function hfp_tool_get_yearstillexpire() {
 	global $cfg, $sys;
 	$yearstillexpire = (int)$cfg['plugin']['hidefuturepages']['yearstillpageexpire'];
-	$yearstillexpire = ($yearstillexpire==0) ? 1: $yearstillexpire; 
-	$pageexpire = (31536000*$yearstillexpire);
-	$pageexpire = $sys['now_offset']+$pageexpire;
-	return $pageexpire;	
+	$yearstillexpire = ($yearstillexpire==0) ? 1: ($yearstillexpire*31536000); 
+	return $sys['now_offset']+$yearstillexpire;
 }
 
 function hfp_tool_action_set_to_display($id) {
@@ -150,7 +148,7 @@ function hfp_tool_action_set_to_display($id) {
 	if($id>0) {
 		$sql = sed_sql_query("SELECT page_cat FROM $db_pages WHERE page_id='".$id."'");
 		if($result = sed_sql_fetchassoc($sql)) {
-			$pageexire = hfp_tool_get_yearstillexpire();
+			$pageexpire = hfp_tool_get_yearstillexpire();
 			sed_sql_query("UPDATE $db_pages SET page_begin='".(int)$sys['now_offset']."', page_expire='".$pageexpire."', page_state='0' WHERE page_id='$id'");
 			sed_sql_query("UPDATE $db_structure SET structure_pagecount=structure_pagecount+1 WHERE structure_code='".sed_sql_prep($result['page_cat'])."'");
 		}

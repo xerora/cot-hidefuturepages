@@ -1,4 +1,5 @@
 <!-- BEGIN: MAIN -->
+	<!-- IF {PHP.cfg.jquery} == "1" -->
 	<script type="text/javascript">
 	$(document).ready(function() {
 		$("#hfp_options_nojs").remove();
@@ -16,6 +17,7 @@
 		});
 	});
 	</script>
+	<!-- ENDIF -->
 	<link href="{HFP_TOOL_STYLESHEET_HREF}" rel="stylesheet" type="text/css" />
 	<div id="hfp_tool_content">
 
